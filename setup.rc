@@ -1,0 +1,14 @@
+#
+# BASH script for setting up python
+#
+# Run with
+# . setup.rc
+#
+
+if [[ ! -d maps_venv ]]; then
+   python3 -m venv maps_venv
+   . maps_venv/bin/activate
+   pip install -r requirements.txt
+else
+   . maps_venv/bin/activate
+fi
