@@ -16,8 +16,8 @@ class ShapesBase():
             rec_count += 1
             #print(shrec.record.as_dict(), shrec.shape)
             map_image.add_polyline(shrec.shape.points)
-            #if (rec_count == 5):
-            #break;
+            if (False and rec_count == 5):
+                break;
 
 
 class WorldCoarse(ShapesBase):
