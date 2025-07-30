@@ -10,8 +10,10 @@ if __name__ == "__main__":
     #print("Running as __main__ with args:", sys.argv)
 
     mi = mapimage.SvgImage()
-    wc = mapshapes.WorldCoarse()
-    wc.plot(mi)
+    #ws = mapshapes.WorldSmall()
+    ws = mapshapes.WorldMedium()
+    #ws = mapshapes.WorldLarge()
+    ws.plot(mi)
     mi.print()
 
 
