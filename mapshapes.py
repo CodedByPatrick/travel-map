@@ -10,31 +10,39 @@ class ShapesBase():
     def get_class_name(self):
         return type(self).__name__
 
-    def plot(self, map_image):
-        rec_count = 0
+    def _use_shape(self, shrec, shape_index):
+        """Indicate if this shape should be used in the map.
+        """
+        return True
+
+
+    def draw_map(self, map_image):
+        """Draw a map using this shapefile
+
+        Draw a map image using the specified projection.
+        """
+        shape_index = 0
         for shrec in self.sf.iterShapeRecords():
-            rec_count += 1
-
-            first_tuple = shrec.shape.points[0]
-            if (first_tuple[0] < 0 or first_tuple[1] < 0):
+            if (self._use_shape(shrec, shape_index) == False):
                 continue
-
-            '''
-            prev_x = shrec.shape.points[0][0]
-            for tup in shrec.shape.points:
-                if (abs(tup[0] - prev_x) > 90):
-                    print("found at ", rec_count)
-                    prev_x = tup[0]
-            '''
-            if (rec_count != 1388):
-                continue
-            #if (rec_count < 1387 or rec_count > 1389):
-            #    continue
-            #print(shrec.record.as_dict(), shrec.shape)
-            map_image.add_polyline(shrec.shape.points[0:390])
-            map_image.add_polyline(shrec.shape.points[392:10600])
-            if (False and rec_count == 5):
-                break;
+            if (len(shrec.shape.parts) == 1):
+                map_image.add_polyline(shrec.shape.points)
+            else:
+                # Loop through the shape parts.
+                # shrec.shape.parts holds the start index
+                # of each part.  Create a begin and end
+                # index list and loop through the values.
+                #
+                begin_list = shrec.shape.parts
+                end_list = begin_list[1:len(begin_list)]
+                end_list.append(len(shrec.shape.points))
+                for i in range(len(begin_list)):
+                    bidx = begin_list[i]
+                    eidx = end_list[i]
+                    part_pts = shrec.shape.points[bidx:eidx]
+                    map_image.add_polyline(part_pts)
+            #
+            shape_index += 1
 
 
 class WorldSmall(ShapesBase):

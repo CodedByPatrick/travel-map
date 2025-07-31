@@ -13,7 +13,7 @@ if __name__ == "__main__":
     #ws = mapshapes.WorldSmall()
     ws = mapshapes.WorldMedium()
     #ws = mapshapes.WorldLarge()
-    ws.plot(mi)
+    ws.draw_map(mi)
     mi.print()
 
 
