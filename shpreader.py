@@ -43,23 +43,3 @@ class ShpReader(shapefile.Reader):
                     yield shrec
 
 
-class WorldSmall(ShpReader):
-
-    def __init__(self):
-        shfile = "../shape_files/ne_110m_coastline.zip"
-        super().__init__(shfile)
-
-
-class WorldMedium(ShpReader):
-
-    def __init__(self):
-        shfile = "../shape_files/ne_50m_coastline.zip"
-        super().__init__(shfile)
-
-
-class WorldLarge(ShpReader):
-
-    def __init__(self):
-        shfile = "../shape_files/ne_10m_coastline.zip"
-        super().__init__(shfile)
-
