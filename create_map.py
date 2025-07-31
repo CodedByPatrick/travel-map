@@ -2,18 +2,20 @@
 #
 
 import sys
-import mapshapes
+import shpreader
 import mapimage
-
+import pprint
 
 if __name__ == "__main__":
     #print("Running as __main__ with args:", sys.argv)
 
     mi = mapimage.SvgImage()
-    #ws = mapshapes.WorldSmall()
-    ws = mapshapes.WorldMedium()
-    #ws = mapshapes.WorldLarge()
-    ws.draw_map(mi)
+    #ws = shpreader.WorldSmall()
+    ws = shpreader.WorldMedium()
+    #ws = shpreader.WorldLarge()
+    for shrec in ws.iterShapeRecParts():
+        #pprint.pprint(vars(shrec.record))
+        #pprint.pprint(vars(shrec.shape))
+        mi.add_polyline(shrec.shape.points)
+
     mi.print()
-
-
