@@ -2,6 +2,10 @@ import sys
 import shpreader
 import mapimage
 import pprint
+import math
+
+DEG_TO_RAD = math.pi / 180.0
+AREA_SPHERE = 4.0 * math.pi * 1 * 1
 
 
 class AnyMap():
@@ -13,6 +17,30 @@ class AnyMap():
     def get_class_name(self):
         return type(self).__name__
 
+    def bbox_area_estimate(self, shrec):
+        """Estimate the area of the bounding box.
+        Works well for small areas.
+        Return as a percent of the whole earth.
+        
+        With coordinates in radians, at the equator, the area of a small
+        bounding box is approximately dx * dy since sin(dx) ~= dx.  As
+        the box moves towards the poles, the width (difference between
+        longitude values) decreases with the cosine of the latitude, so
+        that must be added to the equation.  Finally, the area of a
+        sphere is 4*pi*r^2.
+        """
+        # shapefile returns all data in degrees
+        #
+        dx = (shrec.shape.bbox[2] - shrec.shape.bbox[0]) * DEG_TO_RAD
+        dy = (shrec.shape.bbox[3] - shrec.shape.bbox[1]) * DEG_TO_RAD
+        # Select one value for the latitude.
+        lat_adj = math.cos(shrec.shape.bbox[1] * DEG_TO_RAD)
+        # Area estimate
+        area = dx * dy * lat_adj
+        # Percent
+        percent = area / AREA_SPHERE
+        return percent
+        
     def shape_includes_naukan(self, shrec):
         """Specify if the shape includes Naukan in eastern Russia.
         Bounding box is [min_x, min_y, max_x, max_y].
@@ -73,6 +101,7 @@ class StdWorld(AnyMap):
 
     def __init__(self, shfile):
         super().__init__(shfile)
+        self.area_threshold = 3.0E-6
 
     def use_shape(self, shrec):
         """
@@ -83,6 +112,9 @@ class StdWorld(AnyMap):
         if (self.shape_includes_antarctica(shrec)):
             return False
         """
+        area = self.bbox_area_estimate(shrec)
+        if (area < self.area_threshold):
+            return False
         return True
 
     def transform_shape(self, shrec):
