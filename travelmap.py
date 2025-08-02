@@ -159,7 +159,14 @@ if __name__ == "__main__":
 
     #proj = projection.Rect(1)
     #proj = projection.Albers(50, 20, 0, 0)
-    proj = projection.EckertIV()
+    #proj = projection.EckertIV()
+    #proj = projection.GallPeters()
+    #proj = projection.Mollweide()
+    #proj = projection.NaturalEarth2()
+    #proj = projection.NaturalEarth()
+    #proj = projection.Patterson()
+    #proj = projection.Robinson()
+    proj = projection.VanDerGrinten()
     mimg = mapimage.SvgImage()
     
     wm = WorldMedium();
