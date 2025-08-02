@@ -30,7 +30,8 @@ class SvgImage(MapImage):
         # View Box on the elements in the image.
         # This view box is expanded to fill the final image.
         #
-        self.svg.viewBox = svg.ViewBoxSpec(-180, -90, 370, 180)
+        #self.svg.viewBox = svg.ViewBoxSpec(-180, -90, 370, 180)
+        self.svg.viewBox = svg.ViewBoxSpec(-3.5, -1.5, 7, 3)
 
         self.svg.elements = []
 

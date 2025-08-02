@@ -1,5 +1,6 @@
 import sys
 import shpreader
+import projection
 import mapimage
 import pprint
 import math
@@ -40,27 +41,33 @@ class AnyMap():
         # Percent
         percent = area / AREA_SPHERE
         return percent
+
+    def shape_in_bounding_box(self, shrec, bound):
+        """Determine if the bounding box of a shape lies
+        entirely inside the provided bounding box.
+        Bounding box is [min_x, min_y, max_x, max_y].
+        Returns True or False
+        """
+        if (shrec.shape.bbox[0] >= bound[0] and
+            shrec.shape.bbox[1] >= bound[1] and
+            shrec.shape.bbox[2] <= bound[2] and
+            shrec.shape.bbox[3] <= bound[3]):
+            return True
+        else:
+            return False
         
     def shape_includes_naukan(self, shrec):
         """Specify if the shape includes Naukan in eastern Russia.
         Bounding box is [min_x, min_y, max_x, max_y].
         """
-        min_lat = +64.0
-        max_lon = -169.6
-        if (shrec.shape.bbox[1] > min_lat and
-            shrec.shape.bbox[2] < max_lon):
-            return True
-        else:
-            return False
+        bound = [-180.1, +64.0, -169.6, 89.0]
+        return self.shape_in_bounding_box(shrec, bound)
 
     def shape_includes_antarctica(self, shrec):
         """Specify if the shape includes Antarctica.
         """
-        max_lat = -60.0
-        if (shrec.shape.bbox[3] < max_lat):
-            return True
-        else:
-            return False
+        bound = [ -180.1, -90.0, +180.1, -60.0]
+        return self.shape_in_bounding_box(shrec, bound)
 
     def move_naukan(self, shrec):
         """Move Naukan to the other side of the world.
@@ -82,7 +89,7 @@ class AnyMap():
         """
         pass
 
-    def draw(self, mimg):
+    def draw(self, proj, mimg):
         """Draw the map
         """
         for shrec in self.sfr.iterShapeRecParts():
@@ -91,7 +98,8 @@ class AnyMap():
             self.transform_shape(shrec)
             #pprint.pprint(vars(shrec.record))
             #pprint.pprint(vars(shrec.shape))
-            mimg.add_polyline(shrec.shape.points)
+            pcs_points = proj.project_points(shrec.shape.points)
+            mimg.add_polyline(pcs_points)
 
     def print(self):
         self.mimg.print()
@@ -112,6 +120,7 @@ class StdWorld(AnyMap):
         if (self.shape_includes_antarctica(shrec)):
             return False
         """
+
         area = self.bbox_area_estimate(shrec)
         if (area < self.area_threshold):
             return False
@@ -148,8 +157,11 @@ class WorldLarge(StdWorld):
 if __name__ == "__main__":
     #print("Running as __main__ with args:", sys.argv)
 
+    #proj = projection.Rect(1)
+    #proj = projection.Albers(50, 20, 0, 0)
+    proj = projection.EckertIV()
     mimg = mapimage.SvgImage()
     
     wm = WorldMedium();
-    wm.draw(mimg)
+    wm.draw(proj, mimg)
     mimg.print()
