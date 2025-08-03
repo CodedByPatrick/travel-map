@@ -11,15 +11,17 @@ def print_obj_dir(obj):
         if not name.startswith('_'):
             print("   ", name)
 
+#
+# shfile = "../shape_files/ne_50m_admin_0_countries_lakes.zip"
+# sf = shapefile.Reader(shfile)
+#
 
-def print_shapefile_info(shfile):
-    sf = shapefile.Reader(shfile)
+def shapefile_info(sf):
     print("type(sf):", type(sf))
     pprint(vars(sf))
 
 
-def print_shapeRec_info(shfile, index = 0):
-    sf = shapefile.Reader(shfile)
+def shapeRec_info(sf, index = 0):
     shapeRec = sf.shapeRecord(index)
     print("shapeRec:")
     pprint(vars(shapeRec))
@@ -28,6 +30,8 @@ def print_shapeRec_info(shfile, index = 0):
     print("shapeRec.shape:")
     pprint(vars(shapeRec.shape))
     print_obj_dir(shapeRec.shape)
+
+
 
 
 if __name__ == "__main__":

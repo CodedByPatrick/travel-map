@@ -45,8 +45,9 @@ class SvgImage(MapImage):
         new_group.id = gid
         new_group.stroke = "red"
         new_group.stroke_width = "0.1%"
-        new_group.stroke_linecap = "square"
+        new_group.stroke_linecap = "round"
         new_group.fill = "transparent"
+        new_group.fill = "green"
         new_group.elements = []
 
         self.svg.elements.append(new_group)
@@ -54,18 +55,26 @@ class SvgImage(MapImage):
 
         return new_group
 
-
     def add_polyline(self, pline):
-        #
-        # pyshp shape data is a list of tuples.
-        # svg Polyline needs a list.
-        # Perform conversion.
-        #
+        """
+        pyshp shape data is a list of tuples.
+        svg Polyline needs a list.
+        Perform conversion.
+        """
         pts = [item for ltuple in pline for item in ltuple]
         #pts = [0,0,100,200,200,0]
         sp = svg.Polyline(points = pts)
         self.curr_g.elements.append(sp)
 
+    def add_polygon(self, pline):
+        """
+        pyshp shape data is a list of tuples.
+        svg Polyline needs a list.
+        Perform conversion.
+        """
+        pts = [item for ltuple in pline for item in ltuple]
+        sp = svg.Polygon(points = pts)
+        self.curr_g.elements.append(sp)
 
     def print(self):
         print(self.svg)

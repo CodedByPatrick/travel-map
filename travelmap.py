@@ -1,4 +1,5 @@
 import sys
+import shapefile
 import shpreader
 import projection
 import mapimage
@@ -9,11 +10,27 @@ DEG_TO_RAD = math.pi / 180.0
 AREA_SPHERE = 4.0 * math.pi * 1 * 1
 
 
+class TmBaseError(Exception):
+
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
+
+class TmUnknownPlotTypeError(TmBaseError):
+
+    def __init__(self, msg, plot_type):
+        self.message = "Unknown plot type:" + msg
+        self.plot_type = plot_type
+        super().__init__(self.message + str(self.plot_type))
+
+
 class AnyMap():
 
     def __init__(self, shfile):
         self.shape_file = shfile
         self.sfr = shpreader.ShpReader(self.shape_file)
+        # Set default plot type to be same as the shape type.
+        self.plot_type = self.sfr.shapeType
 
     def get_class_name(self):
         return type(self).__name__
@@ -89,17 +106,32 @@ class AnyMap():
         """
         pass
 
+    def get_draw_function(self, mimg):
+        draw_function = None
+        if   (self.plot_type == shapefile.POINT):
+            raise TmKnownPlotType("get_draw_function", self.plot_type)
+        elif (self.plot_type == shapefile.POLYLINE):
+            draw_function = mimg.add_polyline
+        elif (self.plot_type == shapefile.POLYGON):
+            draw_function = mimg.add_polygon
+        else:
+            raise TmKnownPlotType("get_draw_function", self.plot_type)
+        return draw_function
+
     def draw(self, proj, mimg):
         """Draw the map
         """
+        draw_function = self.get_draw_function(mimg)
+
         for shrec in self.sfr.iterShapeRecParts():
             if (self.use_shape(shrec) == False):
                 continue
             self.transform_shape(shrec)
+
             #pprint.pprint(vars(shrec.record))
             #pprint.pprint(vars(shrec.shape))
             pcs_points = proj.project_points(shrec.shape.points)
-            mimg.add_polyline(pcs_points)
+            draw_function(pcs_points)
 
     def print(self):
         self.mimg.print()
@@ -133,25 +165,33 @@ class StdWorld(AnyMap):
             self.move_naukan(shrec)
 
 
-class WorldSmall(StdWorld):
+class CoastSmall(StdWorld):
 
     def __init__(self):
         shfile = "../shape_files/ne_110m_coastline.zip"
         super().__init__(shfile)
 
 
-class WorldMedium(StdWorld):
+class CoastMedium(StdWorld):
 
     def __init__(self):
         shfile = "../shape_files/ne_50m_coastline.zip"
         super().__init__(shfile)
 
 
-class WorldLarge(StdWorld):
+class CoastLarge(StdWorld):
 
     def __init__(self):
         shfile = "../shape_files/ne_10m_coastline.zip"
         super().__init__(shfile)
+
+
+class CountriesLakesMed(StdWorld):
+
+    def __init__(self):
+        shfile = "../shape_files/ne_50m_admin_0_countries_lakes.zip"
+        super().__init__(shfile)
+
 
     
 if __name__ == "__main__":
@@ -162,13 +202,13 @@ if __name__ == "__main__":
     #proj = projection.EckertIV()
     #proj = projection.GallPeters()
     #proj = projection.Mollweide()
-    #proj = projection.NaturalEarth2()
+    proj = projection.NaturalEarth2()
     #proj = projection.NaturalEarth()
     #proj = projection.Patterson()
     #proj = projection.Robinson()
-    proj = projection.VanDerGrinten()
+    #proj = projection.VanDerGrinten()
     mimg = mapimage.SvgImage()
     
-    wm = WorldMedium();
+    wm = CountriesLakesMed();
     wm.draw(proj, mimg)
     mimg.print()
