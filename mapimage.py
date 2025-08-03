@@ -20,7 +20,8 @@ class SvgImage(MapImage):
         super().__init__()
 
         self.svg = svg.SVG()
-        self.curr_g = self.svg
+        self.curr_group = self.svg
+        self.top_group = self.svg
 
         # Width and height of final image
         #
@@ -35,9 +36,9 @@ class SvgImage(MapImage):
 
         self.svg.elements = []
 
-        grp = self.add_group("top_scale")
-        grp.transform = [ svg.Scale(1, -1) ]
-        
+        self.add_group("top_scale")
+        self.top_group = self.curr_group
+        self.top_group.transform = [ svg.Scale(1, -1) ]
 
     def add_group(self, gid):
         new_group = svg.G()
@@ -50,15 +51,13 @@ class SvgImage(MapImage):
         new_group.fill = "green"
         new_group.elements = []
 
-        self.svg.elements.append(new_group)
-        self.curr_g = new_group
-
-        return new_group
+        self.top_group.elements.append(new_group)
+        self.curr_group = new_group
 
     def set_group_attr(self, color):
         """ TODO - FIX THIS
         """
-        self.curr_g.stroke = "blue"
+        self.curr_group.stroke = "blue"
         
 
     def add_polyline(self, pline):
@@ -70,7 +69,7 @@ class SvgImage(MapImage):
         pts = [item for ltuple in pline for item in ltuple]
         #pts = [0,0,100,200,200,0]
         sp = svg.Polyline(points = pts)
-        self.curr_g.elements.append(sp)
+        self.curr_group.elements.append(sp)
 
     def add_polygon(self, pline):
         """
@@ -80,7 +79,7 @@ class SvgImage(MapImage):
         """
         pts = [item for ltuple in pline for item in ltuple]
         sp = svg.Polygon(points = pts)
-        self.curr_g.elements.append(sp)
+        self.curr_group.elements.append(sp)
 
     def print(self):
         print(self.svg)
