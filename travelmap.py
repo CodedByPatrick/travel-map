@@ -130,7 +130,7 @@ class AnyMap():
         draw_function = self.get_draw_function(mimg)
 
         mimg.add_group(self.get_group_id())
-        mimg.set_group_attr("blue")
+        # TODO - ADD ARGUMENTS mimg.set_group_attr()
 
         for shrec in self.sfr.iterShapeRecParts():
             if (self.use_shape(shrec) == False):
