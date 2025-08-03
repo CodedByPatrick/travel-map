@@ -35,6 +35,9 @@ class AnyMap():
     def get_class_name(self):
         return type(self).__name__
 
+    def get_group_id(self):
+        return self.get_class_name() + "_layer"
+
     def bbox_area_estimate(self, shrec):
         """Estimate the area of the bounding box.
         Works well for small areas.
@@ -125,6 +128,9 @@ class AnyMap():
         """Draw the map
         """
         draw_function = self.get_draw_function(mimg)
+
+        mimg.add_group(self.get_group_id())
+        mimg.set_group_attr("blue")
 
         for shrec in self.sfr.iterShapeRecParts():
             if (self.use_shape(shrec) == False):

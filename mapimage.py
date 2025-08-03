@@ -55,6 +55,12 @@ class SvgImage(MapImage):
 
         return new_group
 
+    def set_group_attr(self, color):
+        """ TODO - FIX THIS
+        """
+        self.curr_g.stroke = "blue"
+        
+
     def add_polyline(self, pline):
         """
         pyshp shape data is a list of tuples.
