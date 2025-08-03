@@ -11,6 +11,29 @@ class ShpReader(shapefile.Reader):
     def get_class_name(self):
         return type(self).__name__
 
+    def calc_part_bbox(self, part_pts):
+        """Calculate the bounding box for the shape part.
+        Loop through the set of points and pick the largest
+        and smallest.
+        """
+        x_lo =  180.0
+        y_lo =   90.0
+        x_hi = -180.0
+        y_hi =  -90.0
+        for coord in part_pts:
+            # x
+            if (coord[0] < x_lo):
+                x_lo = coord[0]
+            elif (coord[0] > x_hi):
+                x_hi = coord[0]
+            # y
+            if (coord[1] < y_lo):
+                y_lo = coord[1]
+            elif (coord[1] > y_hi):
+                y_hi = coord[1]
+        #
+        return [x_lo, y_lo, x_hi, y_hi]
+        
     def iterShapeRecParts(self, fields=None, bbox=None):
         """Return shapefile ShapeRecord one part at a time.
         """
@@ -40,6 +63,7 @@ class ShpReader(shapefile.Reader):
                     part_pts = orig_pts[bidx:eidx]
                     shrec.shape.points = part_pts
                     shrec.shape.parts = [0]
+                    shrec.shape.bbox = self.calc_part_bbox(part_pts)
                     yield shrec
 
 

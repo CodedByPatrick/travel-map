@@ -107,6 +107,9 @@ class AnyMap():
         pass
 
     def get_draw_function(self, mimg):
+        """Get the draw function from the mapimage based
+        on the plot_type.
+        """
         draw_function = None
         if   (self.plot_type == shapefile.POINT):
             raise TmKnownPlotType("get_draw_function", self.plot_type)
@@ -190,6 +193,13 @@ class CountriesLakesMed(StdWorld):
 
     def __init__(self):
         shfile = "../shape_files/ne_50m_admin_0_countries_lakes.zip"
+        super().__init__(shfile)
+
+
+class BoundaryLinesMed(StdWorld):
+
+    def __init__(self):
+        shfile = "../shape_files/ne_50m_admin_0_boundary_lines_land.zip"
         super().__init__(shfile)
 
 
