@@ -14,18 +14,6 @@ class ProjectionBase():
     def get_class_name(self):
         return type(self).__name__
 
-    def deg_to_rad(self, value):
-        """Convert a value from degrees to radians.
-        Returns the converted value in radian value.
-        """
-        return value * DEG_TO_RAD
-
-    def coord_to_rad(self, coord):
-        """Convert a coordinate tuple from degrees to radians.
-        Returns the converted tuple in radians.
-        """
-        return (coord[0] * DEG_TO_RAD, coord[1] * DEG_TO_RAD)
-
     def project_points(self, points):
         """Transform a list of geographic coordinate system tuples.
         points is a list of coordinate tuples in degrees.
@@ -34,16 +22,13 @@ class ProjectionBase():
         """
         pcs_points = []
         for gcs_pt in points:
-            rad_pt = self.coord_to_rad(gcs_pt)
-            pcs_pt = self.project(rad_pt)
+            pcs_pt = self.project_point(gcs_pt)
             pcs_points.append(pcs_pt)
         return pcs_points
 
-    def project(self, gcs_coord):
+    def project_point(self, gcs_coord):
         """Transform an x,y tuple according to the projection.
-        Convert from Geographic Coordinate System (GCS) to a
-        Projected Coordinate System (PCS)
-        gcs_coord is a coordinate tuple in RADIANS.
+        With a basic projection, coordiant can be in arbitrary units.
         Returns a cartesian coordinate tuple in the map projection.
         """
         return gcs_coord
@@ -55,7 +40,14 @@ class ProjectionBase():
         pass
 
 
-class Resize(ProjectionBase):
+class TransformBase(ProjectionBase):
+    """Base class for cartesian transformations.
+    """
+    def __init__(self):
+        super().__init__()
+
+
+class Resize(TransformBase):
 
     def __init__(self, cx, cy = None):
         self.cx = cx
@@ -63,15 +55,16 @@ class Resize(ProjectionBase):
             self.cy = cx
         else:
             self.cy = cy
+        super().__init__()
 
-    def project(self, gcs_coord):
+    def project_point(self, gcs_coord):
         """Resize the coordinate.
         """
         return (gcs_coord[0] * self.cx,
                 gcs_coord[1] * self.cy)
 
 
-class Rotate(ProjectionBase):
+class Rotate(TransformBase):
 
     def __init__(self, angle):
         """Rotation angle in DEGREES
@@ -79,8 +72,9 @@ class Rotate(ProjectionBase):
         self.angle = self.deg_to_rad(angle)
         self.cos_a = math.cos(rad_angle)
         self.sin_a = math.sin(rad_angle)
+        super().__init__()
 
-    def project(self, gcs_coord):
+    def project_point(self, gcs_coord):
         """Rotate the coordinate.
         """
         x, y = gcs_coord
@@ -89,7 +83,7 @@ class Rotate(ProjectionBase):
         return (xp, yp)
 
 
-class Translate(ProjectionBase):
+class Translate(TransformBase):
 
     def __init__(self, cx, cy = None):
         self.cx = cx
@@ -97,8 +91,9 @@ class Translate(ProjectionBase):
             self.cy = cx
         else:
             self.cy = cy
+        super().__init__()
 
-    def project(self, gcs_coord):
+    def project_point(self, gcs_coord):
         """Translate the coordinate.
         """
         return (gcs_coord[0] + self.cx,
@@ -111,6 +106,39 @@ class Rect(Resize):
         super().__init__(cx, cy)
 
 
+
+class GcsBase(ProjectionBase):
+
+    def __init__(self):
+        super().__init__()
+
+    def deg_to_rad(self, value):
+        """Convert a value from degrees to radians.
+        Returns the converted value in radian value.
+        """
+        return value * DEG_TO_RAD
+
+    def coord_to_rad(self, coord):
+        """Convert a coordinate tuple from degrees to radians.
+        Returns the converted tuple in radians.
+        """
+        return (coord[0] * DEG_TO_RAD, coord[1] * DEG_TO_RAD)
+
+    def project_point(self, gcs_coord):
+        """Transform an x,y tuple according to the projection.
+        Convert from Geographic Coordinate System (GCS) to a
+        Projected Coordinate System (PCS)
+        gcs_coord is a coordinate tuple in RADIANS.
+        Returns a cartesian coordinate tuple in the map projection.
+        """
+        rad_coord = self.coord_to_rad(gcs_coord)
+        pcs_coord = self.project_radian_point(rad_coord)
+        return pcs_coord
+
+    def project_radian_point(self, rad_coord):
+        return rad_coord
+
+
 # Albers Projection
 #
 # Defaults for
@@ -121,7 +149,7 @@ class Rect(Resize):
 #
 # US? [45.5, 29.5, -96, 37.5]
 #
-class Albers(ProjectionBase):
+class Albers(GcsBase):
 
     def __init__(self,
                  std_phi1, std_phi2,
@@ -148,11 +176,11 @@ class Albers(ProjectionBase):
         temp_sqrt = math.sqrt(self.C - self.n2 * math.sin(self.ref_phi))
         self.rho0 = self.nin * temp_sqrt
 
-    def project(self, gcs_coord):
+    def project_radian_point(self, rad_coord):
         """
-        gcs_coord is a coordinate tuple in RADIANS.
+        rad_coord is a coordinate tuple in RADIANS.
         """
-        x, y = gcs_coord
+        x, y = rad_coord
         theta = self.n * (x - self.ref_lam)
         temp_sqrt = math.sqrt(self.C - self.n2 * math.sin(y))
         rho = self.nin * temp_sqrt
@@ -179,7 +207,7 @@ class Albers(ProjectionBase):
         return (xp, yp)
 
 
-class EckertIV(ProjectionBase):
+class EckertIV(GcsBase):
 
     def __init__(self):
         self.cx = 2.0 / math.sqrt(4 * math.pi + math.pi * math.pi)
@@ -201,14 +229,14 @@ class EckertIV(ProjectionBase):
         #
         return theta
 
-    def project(self, gcs_coord):
+    def project_radian_point(self, rad_coord):
         """
-        gcs_coord is a coordinate tuple in RADIANS.
+        rad_coord is a coordinate tuple in RADIANS.
         https://en.wikipedia.org/wiki/Eckert_IV_projection
         Project with R = 1
         Scaling will occur later.
         """
-        x, y = gcs_coord
+        x, y = rad_coord
         theta = self.__solve_theta(y)
         xp = self.cx * x * (1 + math.cos(theta))
         yp = self.cy * math.sin(theta)
@@ -229,18 +257,18 @@ class EckertIV(ProjectionBase):
         return (xp, yp)
 
 
-class GallPeters(ProjectionBase):
+class GallPeters(GcsBase):
 
     def __init__(self):
         pass
 
-    def project(self, gcs_coord):
+    def project_radian_point(self, rad_coord):
         """
-        gcs_coord is a coordinate tuple in RADIANS.
+        rad_coord is a coordinate tuple in RADIANS.
         https://en.wikipedia.org/wiki/Gall%E2%80%93Peters_projection
         Project with R = 1
         """
-        x, y = gcs_coord
+        x, y = rad_coord
         xp = x
         yp = 2.0 * math.sin(y)
         return (xp, yp)
@@ -255,7 +283,7 @@ class GallPeters(ProjectionBase):
         return (xp, yp)
 
 
-class Mollweide(ProjectionBase):
+class Mollweide(GcsBase):
 
     def __init__(self):
         self.EPS = 1.0E-11
@@ -276,11 +304,11 @@ class Mollweide(ProjectionBase):
         #
         return theta
 
-    def project(self, gcs_coord):
+    def project_radian_point(self, rad_coord):
         """
-        gcs_coord is a coordinate tuple in RADIANS.
+        rad_coord is a coordinate tuple in RADIANS.
         """
-        x, y = gcs_coord
+        x, y = rad_coord
         theta = self.__solve_theta(y)
         xp = TWO_DIV_PI * x * math.cos(theta)
         yp = math.sin(theta)
@@ -294,7 +322,7 @@ class Mollweide(ProjectionBase):
         return (xp, yp)
 
 
-class NaturalEarth2(ProjectionBase):
+class NaturalEarth2(GcsBase):
 
     def __init__(self):
         self.A0 =  0.84719
@@ -315,11 +343,11 @@ class NaturalEarth2(ProjectionBase):
         self.EPS = 1e-11
         self.MAX_Y = 0.84719 * 0.5351175 * math.pi
 
-    def project(self, gcs_coord):
+    def project_radian_point(self, rad_coord):
         """
-        gcs_coord is a coordinate tuple in RADIANS.
+        rad_coord is a coordinate tuple in RADIANS.
         """
-        x, y = gcs_coord
+        x, y = rad_coord
         phi2 = y * y
         phi4 = phi2 * phi2
         phi6 = phi4 * phi2
@@ -363,7 +391,7 @@ class NaturalEarth2(ProjectionBase):
         return (xp, yp)
 
 
-class NaturalEarth(ProjectionBase):
+class NaturalEarth(GcsBase):
 
     def __init__(self):
         self.A0 =  0.8707
@@ -385,11 +413,11 @@ class NaturalEarth(ProjectionBase):
         self.EPS = 1e-11
         self.MAX_Y = (0.8707 * 0.52 * math.pi)
 
-    def project(self, gcs_coord):
+    def project_radian_point(self, rad_coord):
         """
-        gcs_coord is a coordinate tuple in RADIANS.
+        rad_coord is a coordinate tuple in RADIANS.
         """
-        x, y = gcs_coord
+        x, y = rad_coord
         phi2 = y * y
         phi4 = phi2 * phi2
 
@@ -431,7 +459,7 @@ class NaturalEarth(ProjectionBase):
         return (xp, yp)
 
 
-class Patterson(ProjectionBase):
+class Patterson(GcsBase):
 
     def __init__(self):
         self.C1 =  1.0148
@@ -439,11 +467,11 @@ class Patterson(ProjectionBase):
         self.C3 = -0.14499
         self.C4 =  0.02406
 
-    def project(self, gcs_coord):
+    def project_radian_point(self, rad_coord):
         """
-        gcs_coord is a coordinate tuple in RADIANS.
+        rad_coord is a coordinate tuple in RADIANS.
         """
-        x, y = gcs_coord
+        x, y = rad_coord
         phi = y
         phi2 = phi * phi
         xp = x
@@ -458,7 +486,7 @@ class Patterson(ProjectionBase):
         return (xp, yp)
 
 
-class Robinson(ProjectionBase):
+class Robinson(GcsBase):
 
     def __init__(self):
         self.A0 =  0.8507
@@ -468,11 +496,11 @@ class Robinson(ProjectionBase):
         self.A4 = -0.0104
         self.A5 = -0.0129
 
-    def project(self, gcs_coord):
+    def project_radian_point(self, rad_coord):
         """
-        gcs_coord is a coordinate tuple in RADIANS.
+        rad_coord is a coordinate tuple in RADIANS.
         """
-        x, y = gcs_coord
+        x, y = rad_coord
         phi2 = y * y
         xp = x * (self.A0 + phi2 * (self.A2 + phi2 * self.A4))
         yp = y * (self.A1 + phi2 * (self.A3 + phi2 * self.A5))
@@ -486,27 +514,27 @@ class Robinson(ProjectionBase):
         return (xp, yp)
 
 
-class VanDerGrinten(ProjectionBase):
+class VanDerGrinten(GcsBase):
 
     def __init__(self):
         self.EPS = 1E-11
 
-    def project(self, gcs_coord):
+    def project_radian_point(self, rad_coord):
         """
-        gcs_coord is a coordinate tuple in RADIANS.
+        rad_coord is a coordinate tuple in RADIANS.
         """
-        x, y = gcs_coord
+        x, y = rad_coord
 
         lam = x
         phi = y
 
         if (phi == 0.0):
-            return gcs_coord
+            return rad_coord
 
         theta = math.asin(abs(2.0 * phi / math.pi))
         if ((lam == 0.0) or (abs(PI_DIV_TWO - abs(phi)) < self.EPS)):
             xp = 0
-            yp = math.pi * tan(theta / 2)
+            yp = math.pi * math.tan(theta / 2)
             if (phi < 0.0):
                 yp = -yp
             return (xp, yp)

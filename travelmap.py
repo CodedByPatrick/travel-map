@@ -218,11 +218,11 @@ if __name__ == "__main__":
     #proj = projection.EckertIV()
     #proj = projection.GallPeters()
     #proj = projection.Mollweide()
-    proj = projection.NaturalEarth2()
+    #proj = projection.NaturalEarth2()
     #proj = projection.NaturalEarth()
     #proj = projection.Patterson()
     #proj = projection.Robinson()
-    #proj = projection.VanDerGrinten()
+    proj = projection.VanDerGrinten()
     mimg = mapimage.SvgImage()
     
     wm = CountriesLakesMed();
