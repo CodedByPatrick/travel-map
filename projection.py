@@ -14,6 +14,12 @@ class ProjectionBase():
     def get_class_name(self):
         return type(self).__name__
 
+    def deg_to_rad(self, value):
+        """Convert a value from degrees to radians.
+        Returns the converted value in radian value.
+        """
+        return value * DEG_TO_RAD
+
     def project_points(self, points):
         """Transform a list of geographic coordinate system tuples.
         points is a list of coordinate tuples in degrees.
@@ -70,8 +76,8 @@ class Rotate(TransformBase):
         """Rotation angle in DEGREES
         """
         self.angle = self.deg_to_rad(angle)
-        self.cos_a = math.cos(rad_angle)
-        self.sin_a = math.sin(rad_angle)
+        self.cos_a = math.cos(self.angle)
+        self.sin_a = math.sin(self.angle)
         super().__init__()
 
     def project_point(self, gcs_coord):
@@ -111,12 +117,6 @@ class GcsBase(ProjectionBase):
 
     def __init__(self):
         super().__init__()
-
-    def deg_to_rad(self, value):
-        """Convert a value from degrees to radians.
-        Returns the converted value in radian value.
-        """
-        return value * DEG_TO_RAD
 
     def coord_to_rad(self, coord):
         """Convert a coordinate tuple from degrees to radians.
@@ -614,3 +614,25 @@ class VanDerGrinten(GcsBase):
         yp = phi
 
         return (xp, yp)
+
+
+
+class Compound(ProjectionBase):
+
+    def __init__(self):
+        super().__init__()
+        self.projection_list = []
+
+    def add_projection(self, proj):
+        """Add a projection to the list.
+        """
+        self.projection_list.append(proj)
+
+    def project_point(self, gcs_coord):
+        """Calculate the projection of the coordinate through each
+        projection in the list.
+        """
+        coord = gcs_coord
+        for proj in self.projection_list:
+            coord = proj.project_point(coord)
+        return coord

@@ -213,18 +213,33 @@ class BoundaryLinesMed(StdWorld):
 if __name__ == "__main__":
     #print("Running as __main__ with args:", sys.argv)
 
-    #proj = projection.Rect(1)
+    """
+    #proj = projection.Rect(3.1 / 180.0)
     #proj = projection.Albers(50, 20, 0, 0)
     #proj = projection.EckertIV()
     #proj = projection.GallPeters()
     #proj = projection.Mollweide()
-    #proj = projection.NaturalEarth2()
+    proj = projection.NaturalEarth2()
     #proj = projection.NaturalEarth()
     #proj = projection.Patterson()
     #proj = projection.Robinson()
-    proj = projection.VanDerGrinten()
+    #proj = projection.VanDerGrinten()
     mimg = mapimage.SvgImage()
     
     wm = CountriesLakesMed();
     wm.draw(proj, mimg)
     mimg.print()
+    """
+
+    full_proj = projection.Compound()
+    p1 = projection.NaturalEarth2()
+    p2 = projection.Rotate(45)
+    full_proj.add_projection(p1)
+    full_proj.add_projection(p2)
+    mimg = mapimage.SvgImage()
+    wm = CountriesLakesMed();
+    wm.draw(full_proj, mimg)
+    mimg.print()
+    
+    
+    
