@@ -130,7 +130,7 @@ class AnyMap():
         """
         draw_function = None
         if   (self.plot_type == shapefile.POINT):
-            raise TmKnownPlotType("get_draw_function", self.plot_type)
+            draw_function = mimg.add_points
         elif (self.plot_type == shapefile.POLYLINE):
             draw_function = mimg.add_polyline
         elif (self.plot_type == shapefile.POLYGON):
@@ -187,7 +187,7 @@ class StdWorld(AnyMap):
         if (self.shape_includes_naukan(shrec)):
             self.move_naukan(shrec)
 
-
+"""
 class CoastSmall(StdWorld):
 
     def __init__(self):
@@ -207,7 +207,7 @@ class CoastLarge(StdWorld):
     def __init__(self):
         shfile = "../shape_files/ne_10m_coastline.zip"
         super().__init__(shfile)
-
+"""
 
 class CountriesLakesMed(StdWorld):
 
@@ -229,6 +229,19 @@ class BoundaryLinesMed(StdWorld):
         shfile = "../shape_files/ne_50m_admin_0_boundary_lines_land.zip"
         super().__init__(shfile)
         self.map_attr.line_width = "0.3%"
+
+
+class StdPlace(AnyMap):
+
+    def __init__(self, shfile):
+        super().__init__(shfile)
+
+
+class PopulatedPlacesMed(StdPlace):
+
+    def __init__(self):
+        shfile = "../shape_files/ne_50m_populated_places_simple.zip"
+        super().__init__(shfile)
 
 
     
@@ -265,7 +278,8 @@ if __name__ == "__main__":
     mimg.print()
     """
     
-    proj = projection.NaturalEarth2()
+    #proj = projection.NaturalEarth2()
+    proj = projection.Rect(3.1 / 180.0)
     mimg = mapimage.SvgImage()
 
     wm = CountriesLakesMed()
@@ -274,6 +288,10 @@ if __name__ == "__main__":
 
     wm = BoundaryLinesMed()
     wm.set_map_color("blue")
+    wm.draw(proj, mimg)
+
+    wm = PopulatedPlacesMed()
+    wm.set_map_color("red")
     wm.draw(proj, mimg)
 
     mimg.print()

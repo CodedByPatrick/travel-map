@@ -38,7 +38,12 @@ class ShpReader(shapefile.Reader):
         """Return shapefile ShapeRecord one part at a time.
         """
         for shrec in self.iterShapeRecords(fields, bbox):
-            if (len(shrec.shape.parts) == 1):
+            plen = len(shrec.shape.parts)
+            if (plen == 0):
+                # If there are zero parts, this might be a point.
+                # Return the ponts
+                yield shrec
+            elif (plen == 1):
                 # If there is only one part, return it.
                 #
                 yield shrec

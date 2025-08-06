@@ -144,5 +144,17 @@ class SvgImage(MapImage):
         sp = svg.Polygon(points = pts)
         self.curr_group.elements.append(sp)
 
+    def add_points(self, point_list, attr = None):
+        """Add a set of points to the map image.
+        Points will be added as circles.
+        """
+        for point in point_list:
+            scir = svg.Circle(
+                cx = point[0],
+                cy = point[1],
+                r = 0.01
+            )
+        self.curr_group.elements.append(scir)
+
     def print(self):
         print(self.svg)

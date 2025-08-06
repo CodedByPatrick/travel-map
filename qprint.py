@@ -22,14 +22,14 @@ def shapefile_info(sf):
 
 
 def shapeRec_info(sf, index = 0):
-    shapeRec = sf.shapeRecord(index)
+    sr = sf.shapeRecord(index)
     print("shapeRec:")
-    pprint(vars(shapeRec))
+    pprint(vars(sr))
     print("shapeRec.record:")
-    pprint(vars(shapeRec.record))
+    pprint(vars(sr.record))
     print("shapeRec.shape:")
-    pprint(vars(shapeRec.shape))
-    print_obj_dir(shapeRec.shape)
+    pprint(vars(sr.shape))
+    print_obj_dir(sr.shape)
 
 
 
