@@ -11,12 +11,16 @@ AREA_SPHERE = 4.0 * math.pi * 1 * 1
 
 
 class TmBaseError(Exception):
+    """Base TravelMap exception.
+    """
 
     def __init__(self, message):
         self.message = message
         super().__init__(self.message)
 
 class TmUnknownPlotTypeError(TmBaseError):
+    """TravelMap Unknown Plot Type exception.
+    """
 
     def __init__(self, msg, plot_type):
         self.message = "Unknown plot type:" + msg
@@ -24,16 +28,27 @@ class TmUnknownPlotTypeError(TmBaseError):
         super().__init__(self.message + str(self.plot_type))
 
 
+
 class AnyMap():
+    """Base class for all maps.
+    """
 
     def __init__(self, shfile):
         self.shape_file = shfile
         self.sfr = shpreader.ShpReader(self.shape_file)
         # Set default plot type to be same as the shape type.
         self.plot_type = self.sfr.shapeType
+        self.map_attr = mapimage.MapAttr()
+        self.map_attr.set_default_attr()
 
     def get_class_name(self):
         return type(self).__name__
+
+    def set_map_color(self, color):
+        """Set the plot color.
+        color is a string.
+        """
+        self.map_attr.line_color = color
 
     def get_group_id(self):
         return self.get_class_name() + "_layer"
@@ -129,8 +144,7 @@ class AnyMap():
         """
         draw_function = self.get_draw_function(mimg)
 
-        mimg.add_group(self.get_group_id())
-        # TODO - ADD ARGUMENTS mimg.set_group_attr()
+        mimg.add_group(self.get_group_id(), self.map_attr)
 
         for shrec in self.sfr.iterShapeRecParts():
             if (self.use_shape(shrec) == False):
@@ -200,6 +214,13 @@ class CountriesLakesMed(StdWorld):
     def __init__(self):
         shfile = "../shape_files/ne_50m_admin_0_countries_lakes.zip"
         super().__init__(shfile)
+        self.map_attr.line_width = "0.05%"
+
+    def set_map_color(self, color):
+        """Set the map color.
+        """
+        super().set_map_color(color)
+        self.map_attr.area_fill = color
 
 
 class BoundaryLinesMed(StdWorld):
@@ -207,6 +228,7 @@ class BoundaryLinesMed(StdWorld):
     def __init__(self):
         shfile = "../shape_files/ne_50m_admin_0_boundary_lines_land.zip"
         super().__init__(shfile)
+        self.map_attr.line_width = "0.3%"
 
 
     
@@ -226,11 +248,12 @@ if __name__ == "__main__":
     #proj = projection.VanDerGrinten()
     mimg = mapimage.SvgImage()
     
-    wm = CountriesLakesMed();
+    wm = CountriesLakesMed()
     wm.draw(proj, mimg)
     mimg.print()
     """
 
+    """
     full_proj = projection.Compound()
     p1 = projection.NaturalEarth2()
     p2 = projection.Rotate(45)
@@ -240,6 +263,17 @@ if __name__ == "__main__":
     wm = CountriesLakesMed();
     wm.draw(full_proj, mimg)
     mimg.print()
+    """
     
-    
-    
+    proj = projection.NaturalEarth2()
+    mimg = mapimage.SvgImage()
+
+    wm = CountriesLakesMed()
+    wm.set_map_color("pink")
+    wm.draw(proj, mimg)
+
+    wm = BoundaryLinesMed()
+    wm.set_map_color("blue")
+    wm.draw(proj, mimg)
+
+    mimg.print()
