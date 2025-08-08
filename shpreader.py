@@ -11,6 +11,12 @@ class ShpReader(shapefile.Reader):
     def get_class_name(self):
         return type(self).__name__
 
+
+class ShpPartReader(ShpReader):
+
+    def __init__(self, sf_name = None):
+        super().__init__(sf_name)
+
     def calc_part_bbox(self, part_pts):
         """Calculate the bounding box for the shape part.
         Loop through the set of points and pick the largest
@@ -39,11 +45,7 @@ class ShpReader(shapefile.Reader):
         """
         for shrec in super().iterShapeRecords(fields, bbox):
             plen = len(shrec.shape.parts)
-            if (plen == 0):
-                # If there are zero parts, this might be a point.
-                # Return the ponts
-                yield shrec
-            elif (plen == 1):
+            if (plen <= 1):
                 # If there is only one part, return it.
                 #
                 yield shrec

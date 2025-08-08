@@ -35,11 +35,15 @@ class AnyMap():
 
     def __init__(self, shfile):
         self.shape_file = shfile
-        self.sfr = shpreader.ShpReader(self.shape_file)
+        self.sfr = self.get_shape_reader(self.shape_file)
         # Set default plot type to be same as the shape type.
         self.plot_type = self.sfr.shapeType
         self.map_attr = mapimage.MapAttr()
         self.map_attr.set_default_attr()
+
+    def get_shape_reader(self, shfile):
+        sfr = shpreader.ShpReader(shfile)
+        return sfr
 
     def get_class_name(self):
         return type(self).__name__
@@ -165,6 +169,10 @@ class StdWorld(AnyMap):
     def __init__(self, shfile):
         super().__init__(shfile)
         self.area_threshold = 3.0E-6
+
+    def get_shape_reader(self, shfile):
+        sfr = shpreader.ShpPartReader(shfile)
+        return sfr
 
     def use_shape(self, shrec):
         """
