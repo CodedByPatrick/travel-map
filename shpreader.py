@@ -34,10 +34,10 @@ class ShpReader(shapefile.Reader):
         #
         return [x_lo, y_lo, x_hi, y_hi]
         
-    def iterShapeRecParts(self, fields=None, bbox=None):
+    def iterShapeRecords(self, fields=None, bbox=None):
         """Return shapefile ShapeRecord one part at a time.
         """
-        for shrec in self.iterShapeRecords(fields, bbox):
+        for shrec in super().iterShapeRecords(fields, bbox):
             plen = len(shrec.shape.parts)
             if (plen == 0):
                 # If there are zero parts, this might be a point.

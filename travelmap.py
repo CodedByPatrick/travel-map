@@ -146,7 +146,7 @@ class AnyMap():
 
         mimg.add_group(self.get_group_id(), self.map_attr)
 
-        for shrec in self.sfr.iterShapeRecParts():
+        for shrec in self.sfr.iterShapeRecords():
             if (self.use_shape(shrec) == False):
                 continue
             self.transform_shape(shrec)
