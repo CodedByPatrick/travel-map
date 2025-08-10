@@ -243,7 +243,20 @@ class StdPlace(AnyMap):
 
     def __init__(self, shfile):
         super().__init__(shfile)
+        self.max_scale_rank = 2
 
+    def set_map_color(self, color):
+        """Set the map color.
+        """
+        super().set_map_color(color)
+        self.map_attr.area_fill = color
+
+    def use_shape(self, shrec):
+        """
+        """
+        if (shrec.record['scalerank'] > self.max_scale_rank):
+            return False
+        return True
 
 class PopulatedPlacesMed(StdPlace):
 
@@ -287,7 +300,7 @@ if __name__ == "__main__":
     """
     
     #proj = projection.NaturalEarth2()
-    proj = projection.Rect(3.1 / 180.0)
+    proj = projection.Rect(3.1 / 180.0, 3.1 / 180.0 * 1.5)
     mimg = mapimage.SvgImage()
 
     wm = CountriesLakesMed()
