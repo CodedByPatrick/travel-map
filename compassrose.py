@@ -7,9 +7,9 @@ class CompassRose():
 
     def __init__(self):
         self.svg = svg.SVG()
-        self.svg.width = 500
-        self.svg.height = 500
-        self.svg.viewBox = svg.ViewBoxSpec(-2, -2, 4, 4)
+        self.svg.width = 800
+        self.svg.height = 800
+        self.svg.viewBox = svg.ViewBoxSpec(-1.5, -1.5, 3, 3)
         self.svg.elements = []
 
         self.top_group = svg.G()
@@ -40,7 +40,7 @@ class CompassRose():
         group = svg.G()
         group.id = id_str + "_group"
         group.stroke = "black"
-        group.stroke_width = "0.1%"
+        group.stroke_width = "0.2%"
         group.transform = "rotate(" + str(angle) + ")"
         group.elements = []
         self.top_group.elements.append(group)
@@ -70,7 +70,7 @@ class CompassRose():
             use_elem.transform = "rotate(" + str(rot_ang) + ")"
             group.elements.append(use_elem)
 
-    def draw_small_pts(self, id_str, angle, draw_cir = True):
+    def draw_small_pts(self, id_str, angle, draw_cir, line_width):
         """
         """
         start_len = 0.575
@@ -81,7 +81,7 @@ class CompassRose():
         group = svg.G()
         group.id = id_str + "_group"
         group.stroke = "black"
-        group.stroke_width = "0.1%"
+        group.stroke_width = line_width
         group.transform = "rotate(" + str(angle) + ")"
         group.elements = []
         self.top_group.elements.append(group)
@@ -112,14 +112,17 @@ class CompassRose():
 
         
     def draw(self):
-        self.draw_circle(0.68, "0.1%")
-        self.draw_circle(0.65, "0.3%")
-        self.draw_circle(0.575, "0.1%")
-        self.draw_circle(0.45, "0.1%")
-        self.draw_circle(0.42, "0.3%")
-        self.draw_small_pts("pt32nd_1", 22.5 * 0.5, False)
-        self.draw_small_pts("pt32nd_2", 22.5 * 1.5, False)
-        self.draw_small_pts("sixteenth", 22.5)
+        thin_width = "0.2%"
+        thick_width = "0.4%"
+
+        self.draw_circle(0.68, thin_width)
+        self.draw_circle(0.65, thick_width)
+        self.draw_circle(0.575, thin_width)
+        self.draw_circle(0.43, thin_width)
+        self.draw_circle(0.395, thick_width)
+        self.draw_small_pts("pt32nd_1", 22.5 * 0.5, False, thin_width)
+        self.draw_small_pts("pt32nd_2", 22.5 * 1.5, False, thin_width)
+        self.draw_small_pts("sixteenth", 22.5, True, thin_width)
         self.draw_principal_points("Ordinal_dir",   0.8, 0.1   , True, 45)
         self.draw_principal_points("Cardinal_dir",  1.0, 0.1875, False, 0)
 
