@@ -17,8 +17,21 @@ class CompassRose():
         self.top_group.elements = []
         self.svg.elements.append(self.top_group)
         
-
-    def draw_four_points(self, id_str, point_length, base_size, half_fill, angle):
+    def draw_circle(self, radius, width):
+        cir = svg.Circle()
+        cir.cx = 0
+        cir.cy = 0
+        cir.r = radius
+        cir.stroke_width = width
+        cir.fill = "transparent"
+        self.top_group.elements.append(cir)
+        
+    def draw_principal_points(self,
+                              id_str,
+                              point_length,
+                              base_size,
+                              half_fill,
+                              angle):
         """
         size - length of point
         base - radius of base circle
@@ -40,7 +53,7 @@ class CompassRose():
         onept.elements = []
         group.elements.append(onept)
 
-        # Make one point
+        # Draw one point
         values = [0, 0, -base_x, base_y, 0, point_length]
         pline = svg.Polygon(points = values)
         onept.elements.append(pline)
@@ -51,29 +64,64 @@ class CompassRose():
         onept.elements.append(pline)
 
         # Re-USE it and rotate it for the other three
-        for num_dup in range(3):
+        for rot_ang in [90, 180, 270]:
             use_elem = svg.Use()
             use_elem.href = "#" + id_str
-            use_elem.transform = "rotate(" + str((num_dup+1)*90) + ")"
+            use_elem.transform = "rotate(" + str(rot_ang) + ")"
             group.elements.append(use_elem)
 
-    def draw_circle(self, radius, width):
-        cir = svg.Circle()
-        cir.cx = 0
-        cir.cy = 0
-        cir.r = radius
-        cir.stroke_width = width
-        cir.fill = "transparent"
-        self.top_group.elements.append(cir)
+    def draw_small_pts(self, id_str, angle, draw_cir = True):
+        """
+        """
+        start_len = 0.575
+        end_len = 0.705
+        pt_len = 0.76
+        pt_rad = 0.02
+
+        group = svg.G()
+        group.id = id_str + "_group"
+        group.stroke = "black"
+        group.stroke_width = "0.1%"
+        group.transform = "rotate(" + str(angle) + ")"
+        group.elements = []
+        self.top_group.elements.append(group)
+
+        # Draw one point
+        onept = svg.G()
+        onept.id = id_str
+        onept.elements = []
+        group.elements.append(onept)
+
+        values = [0, start_len, 0, end_len]
+        pline = svg.Polygon(points = values)
+        onept.elements.append(pline)
+        if (draw_cir == True):
+            cir = svg.Circle()
+            cir.cx = 0
+            cir.cy = pt_len
+            cir.r = pt_rad
+            cir.stroke_width = 0
+            onept.elements.append(cir)
+
+        # Re-USE it and rotate it for the other three
+        for use_idx in range(7):
+            use_elem = svg.Use()
+            use_elem.href = "#" + id_str
+            use_elem.transform = "rotate(" + str((use_idx + 1) * 45) + ")"
+            group.elements.append(use_elem)
+
         
     def draw(self):
-        self.draw_circle(0.75, "0.1%")
-        self.draw_circle(0.72, "0.3%")
-        self.draw_circle(0.60, "0.1%")
+        self.draw_circle(0.68, "0.1%")
+        self.draw_circle(0.65, "0.3%")
+        self.draw_circle(0.575, "0.1%")
         self.draw_circle(0.45, "0.1%")
         self.draw_circle(0.42, "0.3%")
-        self.draw_four_points("L2_points",   0.9, 0.1, True, 45)
-        self.draw_four_points("Main_points", 1.0, 0.20, False, 0)
+        self.draw_small_pts("pt32nd_1", 22.5 * 0.5, False)
+        self.draw_small_pts("pt32nd_2", 22.5 * 1.5, False)
+        self.draw_small_pts("sixteenth", 22.5)
+        self.draw_principal_points("Ordinal_dir",   0.8, 0.1   , True, 45)
+        self.draw_principal_points("Cardinal_dir",  1.0, 0.1875, False, 0)
 
 
     def print(self):
