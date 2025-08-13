@@ -8,11 +8,13 @@ class MapAttr():
         self.line_color = None
         self.line_width = None
         self.area_fill = None
+        self.radius = None
 
     def set_default_attr(self):
         self.line_color = "black"
         self.line_width = "1%"
         self.area_fill = "transparent"
+        self.radius = "0.1%"
         
     def set_line_color(self, color):
         """Set line color.
@@ -68,7 +70,8 @@ class SvgImage(MapImage):
         # This view box is expanded to fill the final image.
         #
         #self.svg.viewBox = svg.ViewBoxSpec(-180, -90, 370, 180)
-        self.svg.viewBox = svg.ViewBoxSpec(-3.5, -1.5, 7, 3)
+        #self.svg.viewBox = svg.ViewBoxSpec(-3.5, -1.5, 7, 3)
+        self.svg.viewBox = svg.ViewBoxSpec(-2.5, -0.5, 5, 1)
 
         self.svg.elements = []
 
@@ -152,7 +155,7 @@ class SvgImage(MapImage):
             scir = svg.Circle(
                 cx = point[0],
                 cy = point[1],
-                r = 0.01
+                r = attr.radius
             )
         self.curr_group.elements.append(scir)
 

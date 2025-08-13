@@ -3,8 +3,10 @@ import shapefile
 import shpreader
 import projection
 import mapimage
-import pprint
 import math
+import copy
+import pprint
+
 
 DEG_TO_RAD = math.pi / 180.0
 AREA_SPHERE = 4.0 * math.pi * 1 * 1
@@ -48,14 +50,23 @@ class AnyMap():
     def get_class_name(self):
         return type(self).__name__
 
+    def get_group_id(self):
+        return self.get_class_name() + "_layer"
+
     def set_map_color(self, color):
         """Set the plot color.
         color is a string.
         """
         self.map_attr.line_color = color
 
-    def get_group_id(self):
-        return self.get_class_name() + "_layer"
+    def get_shape_map_attr(self):
+        """Get the MapAttr to be used for drawing map shapes.
+        """
+        return None
+
+    def update_shape_map_attr(self, shrec, map_attr):
+        """Update the shape MapAttr based on properties of the shape.
+        """
 
     def bbox_area_estimate(self, shrec):
         """Estimate the area of the bounding box.
@@ -146,6 +157,7 @@ class AnyMap():
     def draw(self, proj, mimg):
         """Draw the map
         """
+        shape_attr = self.get_shape_map_attr()
         draw_function = self.get_draw_function(mimg)
 
         mimg.add_group(self.get_group_id(), self.map_attr)
@@ -158,7 +170,8 @@ class AnyMap():
             #pprint.pprint(vars(shrec.record))
             #pprint.pprint(vars(shrec.shape))
             pcs_points = proj.project_points(shrec.shape.points)
-            draw_function(pcs_points)
+            self.update_shape_map_attr(shrec, shape_attr)
+            draw_function(pcs_points, shape_attr)
 
     def print(self):
         self.mimg.print()
@@ -243,26 +256,49 @@ class StdPlace(AnyMap):
 
     def __init__(self, shfile):
         super().__init__(shfile)
-        self.max_scale_rank = 2
+        self.max_scale_rank = 1000
 
     def set_map_color(self, color):
         """Set the map color.
         """
         super().set_map_color(color)
+        self.map_attr.line_width = "0"
         self.map_attr.area_fill = color
 
     def use_shape(self, shrec):
         """
         """
+        #print(shrec.record['scalerank'])
         if (shrec.record['scalerank'] > self.max_scale_rank):
             return False
         return True
+
 
 class PopulatedPlacesMed(StdPlace):
 
     def __init__(self):
         shfile = "../shape_files/ne_50m_populated_places_simple.zip"
         super().__init__(shfile)
+        self.max_scale_rank = 7
+        #
+        self.ref_size = 0.25
+
+    def get_shape_map_attr(self):
+        """Get the MapAttr to be used for drawing map shapes.
+        """
+        shape_attr = copy.deepcopy(self.map_attr)
+        return shape_attr
+
+    def update_shape_map_attr(self, shrec, map_attr):
+        """Update the shape MapAttr based on properties of the shape.
+        Calculate a percent base on the maximum scale rank.
+        In ne_50m_populated_places_simple, the max scale rank is 10.
+        """
+        rscale = 11
+        percent = (rscale - shrec.record['scalerank']) / rscale
+        city_size = self.ref_size * percent
+        map_attr.radius = str(city_size) + "%"
+
 
 
     
@@ -299,12 +335,12 @@ if __name__ == "__main__":
     mimg.print()
     """
     
-    #proj = projection.NaturalEarth2()
-    proj = projection.Rect(3.1 / 180.0, 3.1 / 180.0 * 1.5)
+    proj = projection.NaturalEarth2()
+    #proj = projection.Rect(3.1 / 180.0, 3.1 / 180.0 * 1.5)
     mimg = mapimage.SvgImage()
 
     wm = CountriesLakesMed()
-    wm.set_map_color("pink")
+    wm.set_map_color("brown")
     wm.draw(proj, mimg)
 
     wm = BoundaryLinesMed()
@@ -312,7 +348,7 @@ if __name__ == "__main__":
     wm.draw(proj, mimg)
 
     wm = PopulatedPlacesMed()
-    wm.set_map_color("red")
+    wm.set_map_color("yellow")
     wm.draw(proj, mimg)
 
     mimg.print()
