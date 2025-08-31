@@ -154,7 +154,7 @@ class AnyMap():
             raise TmKnownPlotType("get_draw_function", self.plot_type)
         return draw_function
 
-    def draw(self, proj, mimg):
+    def draw(self, proj, mimg, fields=None, bbox=None):
         """Draw the map
         """
         shape_attr = self.get_shape_map_attr()
@@ -162,7 +162,7 @@ class AnyMap():
 
         mimg.add_group(self.get_group_id(), self.map_attr)
 
-        for shrec in self.sfr.iterShapeRecords():
+        for shrec in self.sfr.iterShapeRecords(fields, bbox):
             if (self.use_shape(shrec) == False):
                 continue
             self.transform_shape(shrec)
@@ -309,6 +309,57 @@ class PopulatedPlacesMed(StdPlace):
 
 
 
+class UsaMap(StdWorld):
+
+    def __init__(self, shfile):
+        super().__init__(shfile)
+        self.area_threshold = 0
+        self.map_bbox = [-168, 18, 44, 71]
+
+    def use_shape(self, shrec):
+        """
+        """
+        if (shrec.record['ADM0_A3'] != "USA"):
+            return False
+        return super().use_shape(shrec)
+
+    def draw(self, proj, mimg):
+        """Draw the map
+        """
+        # The bbox argument looks suspect; not sure how a bounding
+        # box around USA returns anything in Africa or ASIA...
+        super().draw(proj, mimg, None, self.map_bbox)
+
+
+class UsaCountriesLakes(UsaMap):
+
+    def __init__(self):
+        shfile = "../shape_files/ne_50m_admin_0_countries_lakes.zip"
+        super().__init__(shfile)
+        self.area_threshold = 0
+        self.map_attr.line_width = "0.05%"
+
+    def set_map_color(self, color):
+        """Set the map color.
+        """
+        super().set_map_color(color)
+        self.map_attr.area_fill = color
+
+
+class ConusCountriesLakes(UsaCountriesLakes):
+
+    def __init__(self):
+        super().__init__()
+        self.map_bbox = [-127, 18, 44, 50]
+
+    def use_shape(self, shrec):
+        """
+        """
+        if (self.shape_in_bounding_box(shrec, self.map_bbox) == False):
+            return False
+        return super().use_shape(shrec)
+
+
 class TravelMap():
 
     def __init__(self):
@@ -365,11 +416,23 @@ class TravelMap():
         wm.draw(proj, mimg)
 
         mimg.print()
+
+    def create_usa(self):
+        """Create a USA Map
+        """
+
+        # CONUS
+        mimg = mapimage.SvgImage()
+        proj = projection.Albers(45.5, 29.5, -96, 37.5)
+        um = ConusCountriesLakes()
+        um.set_map_color("brown")
+        um.draw(proj, mimg)
+
+        mimg.print()
         
-    
-    
 if __name__ == "__main__":
     #print("Running as __main__ with args:", sys.argv)
 
     tm = TravelMap()
-    tm.create_world()
+    #tm.create_world()
+    tm.create_usa()
