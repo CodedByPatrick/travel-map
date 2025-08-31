@@ -208,8 +208,10 @@ class StdWorld(AnyMap):
         if (self.shape_includes_naukan(shrec)):
             self.move_naukan(shrec)
 
-"""
+'''
 class CoastSmall(StdWorld):
+    """Small scale (least detail) coastlines (land outlines)
+    """
 
     def __init__(self):
         shfile = "../shape_files/ne_110m_coastline.zip"
@@ -217,6 +219,8 @@ class CoastSmall(StdWorld):
 
 
 class CoastMedium(StdWorld):
+    """Medium scale coastlines (land outlines)
+    """
 
     def __init__(self):
         shfile = "../shape_files/ne_50m_coastline.zip"
@@ -224,11 +228,13 @@ class CoastMedium(StdWorld):
 
 
 class CoastLarge(StdWorld):
+    """Large scale (most detail) coastlines (land outlines)
+    """
 
     def __init__(self):
         shfile = "../shape_files/ne_10m_coastline.zip"
         super().__init__(shfile)
-"""
+'''
 
 class CountriesLakesMed(StdWorld):
 
@@ -301,54 +307,69 @@ class PopulatedPlacesMed(StdPlace):
 
 
 
+
+
+class TravelMap():
+
+    def __init__(self):
+        pass
+
+    def projection_list(self):
+        #proj = projection.Rect(3.1 / 180.0)
+        #proj = projection.Albers(50, 20, 0, 0)
+        #proj = projection.EckertIV()
+        #proj = projection.GallPeters()
+        #proj = projection.Mollweide()
+        #proj = projection.NaturalEarth2()
+        #proj = projection.NaturalEarth()
+        #proj = projection.Patterson()
+        #proj = projection.Robinson()
+        proj = projection.VanDerGrinten()
+        mimg = mapimage.SvgImage()
+        wm = CountriesLakesMed()
+        wm.draw(proj, mimg)
+        mimg.print()
+        
+    def example_compound(self):
+        """Example of a Compound Projection
+        """
+        full_proj = projection.Compound()
+        p1 = projection.NaturalEarth2()
+        p2 = projection.Rotate(45)
+        full_proj.add_projection(p1)
+        full_proj.add_projection(p2)
+        mimg = mapimage.SvgImage()
+        wm = CountriesLakesMed();
+        wm.draw(full_proj, mimg)
+        mimg.print()
+
+    def create_world(self):
+        """Create a standard World Map
+        """
+        # TODO - How do I set the projection?
+        
+        #proj = projection.NaturalEarth2()
+        proj = projection.Rect(3.1 / 180.0, 3.1 / 180.0 )
+        mimg = mapimage.SvgImage()
+
+        wm = CountriesLakesMed()
+        wm.set_map_color("brown")
+        wm.draw(proj, mimg)
+
+        wm = BoundaryLinesMed()
+        wm.set_map_color("blue")
+        wm.draw(proj, mimg)
+
+        wm = PopulatedPlacesMed()
+        wm.set_map_color("yellow")
+        wm.draw(proj, mimg)
+
+        mimg.print()
+        
+    
     
 if __name__ == "__main__":
     #print("Running as __main__ with args:", sys.argv)
 
-    """
-    #proj = projection.Rect(3.1 / 180.0)
-    #proj = projection.Albers(50, 20, 0, 0)
-    #proj = projection.EckertIV()
-    #proj = projection.GallPeters()
-    #proj = projection.Mollweide()
-    proj = projection.NaturalEarth2()
-    #proj = projection.NaturalEarth()
-    #proj = projection.Patterson()
-    #proj = projection.Robinson()
-    #proj = projection.VanDerGrinten()
-    mimg = mapimage.SvgImage()
-    
-    wm = CountriesLakesMed()
-    wm.draw(proj, mimg)
-    mimg.print()
-    """
-
-    """
-    full_proj = projection.Compound()
-    p1 = projection.NaturalEarth2()
-    p2 = projection.Rotate(45)
-    full_proj.add_projection(p1)
-    full_proj.add_projection(p2)
-    mimg = mapimage.SvgImage()
-    wm = CountriesLakesMed();
-    wm.draw(full_proj, mimg)
-    mimg.print()
-    """
-    
-    proj = projection.NaturalEarth2()
-    #proj = projection.Rect(3.1 / 180.0, 3.1 / 180.0 * 1.5)
-    mimg = mapimage.SvgImage()
-
-    wm = CountriesLakesMed()
-    wm.set_map_color("brown")
-    wm.draw(proj, mimg)
-
-    wm = BoundaryLinesMed()
-    wm.set_map_color("blue")
-    wm.draw(proj, mimg)
-
-    wm = PopulatedPlacesMed()
-    wm.set_map_color("yellow")
-    wm.draw(proj, mimg)
-
-    mimg.print()
+    tm = TravelMap()
+    tm.create_world()
